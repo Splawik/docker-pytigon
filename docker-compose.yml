@@ -1,0 +1,38 @@
+version: "3.2"
+services:
+  pytigon:
+    build: .
+    image: pytigon:v1
+    container_name: pytigon-container
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "80:8080"
+
+    extra_hosts:
+        - "pytigon_db:db_serwer_ip"
+
+    environment:
+        - DATABASE_URL=mysql://user:password@pytigon_db/db_name
+        - LD_RUN_PATH=/var/www/pytigon/ext_prg/tcc
+        - PYTIGON_DEBUG=1
+
+    volumes:
+      - type: "bind"
+        source: "/var/log/pytigon"
+        target: "/var/log"
+
+      - type: "bind"
+        source: "./app_pack"
+        target: "/var/www/pytigon/app_pack"
+
+      - www-data:/home/www-data/.pytigon
+
+volumes:
+  www-data:
