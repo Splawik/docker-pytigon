@@ -44,7 +44,8 @@ RUN pip3 install mysqlclient --upgrade
 RUN apt-get install -y mc
 RUN apt-get install -y vim
 
-EXPOSE 8080
+EXPOSE 80
+EXPOSE 443
 EXPOSE 8000
 EXPOSE 8001
 EXPOSE 8002
