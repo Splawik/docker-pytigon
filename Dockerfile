@@ -50,5 +50,4 @@ EXPOSE 8000
 EXPOSE 8001
 EXPOSE 8002
 
-
 CMD ["python3.6", "entrypoint-interface.py"]
