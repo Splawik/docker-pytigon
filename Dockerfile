@@ -13,7 +13,7 @@ RUN apt-get install -y build-essential checkinstall && \
     apt-get install -y libssl-dev libsqlite3-dev tk-dev libgdbm-dev && \
     apt-get install -y libc6-dev libbz2-dev
 
-RUN apt-get install -y python3.6 python3.6-dev python3-distutils
+RUN apt-get install -y python3.6 python3.6-dev python3-distutils-extra
 
 RUN apt-get install -y curl git apt-transport-https &&\
     apt-get install -y redis-server
