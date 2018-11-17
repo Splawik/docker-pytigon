@@ -13,12 +13,14 @@ RUN apt-get install -y build-essential checkinstall && \
     apt-get install -y libssl-dev libsqlite3-dev tk-dev libgdbm-dev && \
     apt-get install -y libc6-dev libbz2-dev
 
-RUN apt-get install -y python3.6 python3.6-dev python3-distutils-extra
+RUN apt-get install -y python3.7 python3.7-dev python3.7-distutils
+
+RUN apt-get update -y --fix-missing
 
 RUN apt-get install -y curl git apt-transport-https &&\
     apt-get install -y redis-server
 
-RUN curl https://bootstrap.pypa.io/get-pip.py | python3.6
+RUN curl https://bootstrap.pypa.io/get-pip.py | python3.7
 
 RUN apt-get install -y mysql-client libmysqlclient-dev && \
     apt-get install -y nginx zip
@@ -41,6 +43,7 @@ RUN mkdir /home/www-data && \
 
 RUN pip3 install mysqlclient --upgrade
 
+RUN apt-get install -y hypercorn
 RUN apt-get install -y mc
 RUN apt-get install -y vim
 
@@ -50,4 +53,4 @@ EXPOSE 8000
 EXPOSE 8001
 EXPOSE 8002
 
-CMD ["python3.6", "entrypoint-interface.py"]
+CMD ["python3.7", "entrypoint-interface.py"]
