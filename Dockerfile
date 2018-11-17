@@ -41,11 +41,7 @@ RUN mkdir /home/www-data && \
     rm /etc/nginx/sites-available/default && \
     rm /etc/nginx/sites-enabled/default
 
-RUN pip3 install mysqlclient --upgrade
-
-RUN apt-get install -y hypercorn
-RUN apt-get install -y mc
-RUN apt-get install -y vim
+RUN pip3 install mysqlclient hypercorn --upgrade
 
 EXPOSE 80
 EXPOSE 443
