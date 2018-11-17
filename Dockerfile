@@ -41,7 +41,7 @@ RUN mkdir /home/www-data && \
     rm /etc/nginx/sites-available/default && \
     rm /etc/nginx/sites-enabled/default
 
-RUN pip3 install mysqlclient hypercorn --upgrade
+#RUN pip3 install mysqlclient hypercorn --upgrade
 
 EXPOSE 80
 EXPOSE 443
