@@ -25,8 +25,15 @@ RUN curl https://bootstrap.pypa.io/get-pip.py | python3.7
 RUN apt-get install -y mysql-client libmysqlclient-dev && \
     apt-get install -y nginx zip
 
-RUN mkdir /var/www/pytigon && \
-    git clone https://github.com/Splawik/pytigon.git /var/www/pytigon
+RUN mkdir /var/www/pytigon
+RUN mkdir /var/www/pytigon/ext_prg
+RUN mkdir /root/.pytigon
+RUN mkdir /root/.pytigon/prj
+
+#    git clone https://github.com/Splawik/pytigon.git /var/www/pytigon
+
+ADD ./entrypoint-interface.py /var/www/pytigon/entrypoint-interface.py
+ADD ./install_in_docker.sh /var/www/pytigon/install_in_docker.sh
 
 WORKDIR /var/www/pytigon
 
@@ -41,7 +48,13 @@ RUN mkdir /home/www-data && \
     rm /etc/nginx/sites-available/default && \
     rm /etc/nginx/sites-enabled/default
 
+RUN apt-get -y install postgresql-client postgresql-client-common libpq-dev
+RUN ls
+RUN pip3 install git+https://github.com/Splawik/pytigon-lib.git 
+RUN pip3 install git+https://github.com/Splawik/pytigon.git
+RUN pip3 install psycopg2 hypercorn --upgrade
 #RUN pip3 install mysqlclient hypercorn --upgrade
+
 
 EXPOSE 80
 EXPOSE 443
