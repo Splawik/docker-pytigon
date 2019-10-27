@@ -1,2 +1,2 @@
-# docker-pytigon
+# pytigon-docker
 Docker image of pytigon
