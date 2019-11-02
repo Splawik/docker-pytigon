@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
     if not "NO_EXECUTE_TASKS" in environ:
         for prj in PRJS:
-            cmd = "cd /var/www/pytigon && exec %s -m pytigon_task %s" % (
+            cmd = "cd /var/www/pytigon && exec %s -m pytigon.pytigon_task %s" % (
                 get_executable(),
                 prj,
             )
