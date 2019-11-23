@@ -50,8 +50,8 @@ RUN mkdir /home/www-data && \
 
 RUN apt-get -y install postgresql-client postgresql-client-common libpq-dev
 RUN ls
-RUN pip3 install git+https://github.com/Splawik/pytigon-lib.git 
 RUN pip3 install git+https://github.com/Splawik/pytigon.git
+RUN pip3 install git+https://github.com/Splawik/pytigon-lib.git 
 RUN pip3 install psycopg2 hypercorn --upgrade
 #RUN pip3 install mysqlclient hypercorn --upgrade
 
