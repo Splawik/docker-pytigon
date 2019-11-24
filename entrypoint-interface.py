@@ -224,6 +224,15 @@ if __name__ == "__main__":
             else:
                 PRJS.append(prj)
 
+    if "INCLUDE_SETUP" in environ:
+        PRJS.append('schsetup')
+    if "INCLUDE_DEVTOOLS" in environ:
+        PRJS.append('schdevtools')
+    if "INCLUDE_PORTAL" in environ:
+        PRJS.append('schportal')
+    if "MAIN_PRJ" in environ:
+        MAIN_PRJ = environ['MAIN_PRJ']
+
     if not MAIN_PRJ and len(PRJS) == 1:
         MAIN_PRJ = PRJS[0]
         PRJS = []
@@ -257,6 +266,7 @@ if __name__ == "__main__":
                 conf.write("    include %s;\n\n" % NGINX_INCLUDE)
             conf.write(CFG_END % ("http://127.0.0.1", port))
 
+
     if MAIN_PRJ and not MAIN_PRJ in PRJS:
         PRJS.append(MAIN_PRJ)
 
@@ -282,6 +292,9 @@ if __name__ == "__main__":
             server = (server1, server2, server3)[ASGI_SERVER_ID]
 
         path = f"/var/www/pytigon/prj/{prj}"
+        if not os.path.exists(path):
+            path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}"
+
 
         cmd = f"cd {path} && exec {server}"
 
