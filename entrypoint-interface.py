@@ -7,7 +7,10 @@ from os import environ
 
 if __name__ == "__main__":
     from pytigon_lib.schtools.tools import get_executable
+    import pytigon
 
+    PYTIGON_PATH = os.path.abspath(os.path.dirname(pytigon.__file__))
+    STATIC_PATH = os.path.join(PYTIGON_PATH, "static")
     BASE_APPS_PATH = "/var/www/pytigon/prj"
     sys.path.append(BASE_APPS_PATH)
 
@@ -48,7 +51,8 @@ if __name__ == "__main__":
     # NUMBER_OF_WORKER_PROCESSES struct:
     # 1. NUMBER_FOR_MAIN_APP, for example: 4
     # 2. NUMBER_FOR_MAIN_APP:NUMBER_FOR_ADDITIONAL_APP, for example: 4:1
-    # 3. NAME_OF_SPECIFIC_APP:NUMBER_FOR_SPECIFIC_APP,*, for example:  schportal:4,schdevtools:2
+    # 3. NAME_OF_SPECIFIC_APP:NUMBER_FOR_SPECIFIC_APP,*, for example:  schportall
+:4,schdevtools:2
 
     NOWP = {}
     if "NUMBER_OF_WORKER_PROCESSES" in environ:
@@ -137,13 +141,13 @@ if __name__ == "__main__":
         {KEY}
     
         location ^~ /static/ {{
-            alias /var/www/pytigon/static/;
+            alias {STATIC_PATH}/;
         }}
     """
 
     CFG_ELEM = """
         location ^~ /%s/static/ {
-            alias /var/www/pytigon/static/;
+            alias STATIC_PATH/;
         }
         location ^~ /%s/site_media/ {
             alias /home/www-data/.pytigon/%s/media/;
@@ -174,7 +178,7 @@ if __name__ == "__main__":
         }
     """.replace(
         "$TIMEOUT", TIMEOUT
-    )
+    ).replace("STATIC_PATH", STATIC_PATH)
 
     CFG_END = """
         location ~ (.*)$ {
@@ -279,15 +283,21 @@ if __name__ == "__main__":
             count = NOWP[prj]
         else:
             count = (
-                NOWP["default-main"] if prj == MAIN_PRJ else NOWP["default-additional"]
+                NOWP["default-main"] if prj == MAIN_PRJ else NOWP["default-additt
+ional"]
             )
 
         if prj in NO_ASGI:
-            server = f"gunicorn -b 0.0.0.0:{port} -w {count} --access-logfile /var/log/pytigon-access.log --log-file /var/log/pytigon-err.log wsgi -t {TIMEOUT}"
+            server = f"gunicorn -b 0.0.0.0:{port} -w {count} --access-logfile /vv
+ar/log/pytigon-access.log --log-file /var/log/pytigon-err.log wsgi -t {TIMEOUT}"
         else:
-            server1 = f"hypercorn -b 0.0.0.0:{port} -w {count} --access-log /var/log/pytigon-access.log --error-log /var/log/pytigon-err.log asgi:application"
-            server2 = f"gunicorn -b 0.0.0.0:{port} -w {count} -k uvicorn.workers.UvicornWorker --access-logfile /var/log/pytigon-access.log --log-file /var/log/pytigon-err.log asgi:application -t {TIMEOUT}"
-            server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers --access-log /var/log/pytigon-access.log asgi:application"
+            server1 = f"hypercorn -b 0.0.0.0:{port} -w {count} --access-log /varr
+/log/pytigon-access.log --error-log /var/log/pytigon-err.log asgi:application"
+            server2 = f"gunicorn -b 0.0.0.0:{port} -w {count} -k uvicorn.workerss
+.UvicornWorker --access-logfile /var/log/pytigon-access.log --log-file /var/log//
+pytigon-err.log asgi:application -t {TIMEOUT}"
+            server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers --access-logg
+ /var/log/pytigon-access.log asgi:application"
 
             server = (server1, server2, server3)[ASGI_SERVER_ID]
 
@@ -304,7 +314,8 @@ if __name__ == "__main__":
 
     if not "NO_EXECUTE_TASKS" in environ:
         for prj in PRJS:
-            cmd = "cd /var/www/pytigon && exec %s -m pytigon.pytigon_task %s" % (
+            cmd = "cd /var/www/pytigon && exec %s -m pytigon.pytigon_task %s" %  
+(
                 get_executable(),
                 prj,
             )
