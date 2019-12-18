@@ -22,6 +22,11 @@ services:
         - DATABASE_URL=mysql://user:password@pytigon_db/db_name
         - LD_RUN_PATH=/var/www/pytigon/ext_prg/tcc
         - PYTIGON_DEBUG=1
+        - NO_EXECUTE_TASKS=1
+        - INCLUDE_SETUP=True
+        - INCLUDE_DEVTOOLS=True
+        - INCLUDE_PORTAL=True
+        - MAIN_PRJ=schportal
 
     volumes:
       - type: "bind"
