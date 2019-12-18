@@ -13,19 +13,19 @@ services:
       restart_policy:
         condition: on-failure
     ports:
-      - "80:8080"
+      - "80:80"
 
     extra_hosts:
         - "pytigon_db:db_serwer_ip"
 
     environment:
         - DATABASE_URL=mysql://user:password@pytigon_db/db_name
-        - LD_RUN_PATH=/var/www/pytigon/ext_prg/tcc
-        - PYTIGON_DEBUG=1
+        - VIRTUAL_PORT=80
+        #- PYTIGON_DEBUG=1
         - NO_EXECUTE_TASKS=1
         - INCLUDE_SETUP=True
         - INCLUDE_DEVTOOLS=True
-        - INCLUDE_PORTAL=True
+        #- INCLUDE_PORTAL=True
         - MAIN_PRJ=schportal
 
     volumes:
