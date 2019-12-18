@@ -143,6 +143,10 @@ if __name__ == "__main__":
         location ^~ /static/ {{
             alias {STATIC_PATH}/;
         }}
+
+        location ^~ /static/%s/ {{
+            alias %s/;
+        }}
     """
 
     CFG_ELEM = """
@@ -150,10 +154,10 @@ if __name__ == "__main__":
             alias STATIC_PATH/;
         }
         location ^~ /static/%s/ {
-            alias %s;
+            alias %s/;
         }
         location ^~ /%s/static/%s/ {
-            alias %s;
+            alias %s/;
         }
         location ^~ /%s/site_media/ {
             alias /home/www-data/.pytigon/%s/media/;
@@ -253,7 +257,12 @@ if __name__ == "__main__":
         if PORT_80_REDIRECT:
             conf.write(CFG_OLD)
 
-        conf.write(CFG_START)
+        path = f"/var/www/pytigon/prj/{MAIN_PRJ}/static/{MAIN_PRJ}"
+        if not os.path.exists(path):
+            path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{MAIN_PRJ}/static/{MAIN_PRJ}"
+
+        conf.write(CFG_START % (MAIN_PRJ, path))
+
         port = START_CLIENT_PORT
         for prj in PRJS:
 
