@@ -30,14 +30,9 @@ RUN mkdir /var/www/pytigon/ext_prg
 RUN mkdir /root/.pytigon
 RUN mkdir /root/.pytigon/prj
 
-#    git clone https://github.com/Splawik/pytigon.git /var/www/pytigon
-
 ADD ./entrypoint-interface.py /var/www/pytigon/entrypoint-interface.py
-#ADD ./install_in_docker.sh /var/www/pytigon/install_in_docker.sh
 
 WORKDIR /var/www/pytigon
-
-#RUN bash ./install_in_docker.sh
 
 RUN mkdir /home/www-data && \
     mkdir /home/www-data/.pytigon && \
@@ -51,12 +46,12 @@ RUN mkdir /home/www-data && \
 RUN apt-get -y install postgresql-client postgresql-client-common libpq-dev
 
 RUN pip3 install django-filer
+RUN ls
 RUN pip3 install git+https://github.com/Splawik/pytigon.git
 RUN pip3 uninstall pytigon-lib -y
 RUN pip3 install git+https://github.com/Splawik/pytigon-lib.git 
-RUN pip3 install psycopg2 hypercorn --upgrade
-#RUN pip3 install mysqlclient hypercorn --upgrade
 
+RUN pip3 install psycopg2 hypercorn --upgrade
 
 EXPOSE 80
 EXPOSE 443
