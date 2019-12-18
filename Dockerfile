@@ -33,11 +33,11 @@ RUN mkdir /root/.pytigon/prj
 #    git clone https://github.com/Splawik/pytigon.git /var/www/pytigon
 
 ADD ./entrypoint-interface.py /var/www/pytigon/entrypoint-interface.py
-ADD ./install_in_docker.sh /var/www/pytigon/install_in_docker.sh
+#ADD ./install_in_docker.sh /var/www/pytigon/install_in_docker.sh
 
 WORKDIR /var/www/pytigon
 
-RUN bash ./install_in_docker.sh
+#RUN bash ./install_in_docker.sh
 
 RUN mkdir /home/www-data && \
     mkdir /home/www-data/.pytigon && \
@@ -49,7 +49,7 @@ RUN mkdir /home/www-data && \
     rm /etc/nginx/sites-enabled/default
 
 RUN apt-get -y install postgresql-client postgresql-client-common libpq-dev
-RUN ls
+
 RUN pip3 install django-filer
 RUN pip3 install git+https://github.com/Splawik/pytigon.git
 RUN pip3 uninstall pytigon-lib -y

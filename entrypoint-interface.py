@@ -144,10 +144,16 @@ if __name__ == "__main__":
             alias {STATIC_PATH}/;
         }}
     """
-    print("X1:", STATIC_PATH)
+
     CFG_ELEM = """
         location ^~ /%s/static/ {
             alias STATIC_PATH/;
+        }
+        location ^~ /static/%s/ {
+            alias %s;
+        }
+        location ^~ /%s/static/%s/ {
+            alias %s;
         }
         location ^~ /%s/site_media/ {
             alias /home/www-data/.pytigon/%s/media/;
@@ -178,7 +184,9 @@ if __name__ == "__main__":
         }
     """.replace(
         "$TIMEOUT", TIMEOUT
-    ).replace("STATIC_PATH", STATIC_PATH)
+    ).replace(
+        "STATIC_PATH", STATIC_PATH
+    )
 
     CFG_END = """
         location ~ (.*)$ {
@@ -229,13 +237,13 @@ if __name__ == "__main__":
                 PRJS.append(prj)
 
     if "INCLUDE_SETUP" in environ:
-        PRJS.append('schsetup')
+        PRJS.append("schsetup")
     if "INCLUDE_DEVTOOLS" in environ:
-        PRJS.append('schdevtools')
+        PRJS.append("schdevtools")
     if "INCLUDE_PORTAL" in environ:
-        PRJS.append('schportal')
+        PRJS.append("schportal")
     if "MAIN_PRJ" in environ:
-        MAIN_PRJ = environ['MAIN_PRJ']
+        MAIN_PRJ = environ["MAIN_PRJ"]
 
     if not MAIN_PRJ and len(PRJS) == 1:
         MAIN_PRJ = PRJS[0]
@@ -248,10 +256,20 @@ if __name__ == "__main__":
         conf.write(CFG_START)
         port = START_CLIENT_PORT
         for prj in PRJS:
+
+            path = f"/var/www/pytigon/prj/{prj}/static/{prj}"
+            if not os.path.exists(path):
+                path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}/static/{prj}"
+
             conf.write(
                 CFG_ELEM
                 % (
                     prj,
+                    prj,
+                    path,
+                    prj,
+                    prj,
+                    path,
                     prj,
                     prj,
                     prj,
@@ -269,7 +287,6 @@ if __name__ == "__main__":
             if NGINX_INCLUDE:
                 conf.write("    include %s;\n\n" % NGINX_INCLUDE)
             conf.write(CFG_END % ("http://127.0.0.1", port))
-
 
     if MAIN_PRJ and not MAIN_PRJ in PRJS:
         PRJS.append(MAIN_PRJ)
@@ -298,7 +315,6 @@ if __name__ == "__main__":
         path = f"/var/www/pytigon/prj/{prj}"
         if not os.path.exists(path):
             path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}"
-
 
         cmd = f"cd {path} && exec {server}"
 
