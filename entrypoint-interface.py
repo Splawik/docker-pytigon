@@ -193,6 +193,13 @@ if __name__ == "__main__":
     )
 
     CFG_END = """
+        location ~ (.*)/socket.io/$ {
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_pass http://127.0.0.1:%d$1/socket.io/;
+        }    
+
         location ~ (.*)$ {
             proxy_pass %s:%d$1$is_args$args;
             proxy_set_header Host $host;
@@ -295,7 +302,7 @@ if __name__ == "__main__":
         if MAIN_PRJ:
             if NGINX_INCLUDE:
                 conf.write("    include %s;\n\n" % NGINX_INCLUDE)
-            conf.write(CFG_END % ("http://127.0.0.1", port))
+            conf.write(CFG_END % (port, "http://127.0.0.1", port))
 
     if MAIN_PRJ and not MAIN_PRJ in PRJS:
         PRJS.append(MAIN_PRJ)
