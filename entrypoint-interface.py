@@ -81,6 +81,11 @@ if __name__ == "__main__":
     else:
         TIMEOUT = "30"
 
+    if "WEBSOCKET_TIMEOUT" in environ:
+        WEBSOCKET_TIMEOUT = environ["WEBSOCKET_TIMEOUT"]
+    else:
+        WEBSOCKET_TIMEOUT = "30"
+
     # ASGI_SERVER_NAME:
     # 1. daphne
     # 2. gunicorn
@@ -168,6 +173,10 @@ if __name__ == "__main__":
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
             proxy_pass %s:%d/%s$1/socket.io/;
+            proxy_connect_timeout       $WEBSOCKET_TIMEOUT;
+            proxy_send_timeout          $WEBSOCKET_TIMEOUT;
+            proxy_read_timeout          $WEBSOCKET_TIMEOUT;
+            send_timeout                $WEBSOCKET_TIMEOUT;
         }    
         location ~ /%s(.*)$ {
             proxy_pass %s:%d/%s$1$is_args$args;
@@ -189,6 +198,8 @@ if __name__ == "__main__":
     """.replace(
         "$TIMEOUT", TIMEOUT
     ).replace(
+        "$WEBSOCKET_TIMEOUT", WEBSOCKET_TIMEOUT
+    ).replace(
         "STATIC_PATH", STATIC_PATH
     )
 
@@ -198,6 +209,10 @@ if __name__ == "__main__":
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
             proxy_pass http://127.0.0.1:%d$1/socket.io/;
+            proxy_connect_timeout       $WEBSOCKET_TIMEOUT;
+            proxy_send_timeout          $WEBSOCKET_TIMEOUT;
+            proxy_read_timeout          $WEBSOCKET_TIMEOUT;
+            send_timeout                $WEBSOCKET_TIMEOUT;
         }    
 
         location ~ (.*)$ {
@@ -213,6 +228,8 @@ if __name__ == "__main__":
     }
     """.replace(
         "$TIMEOUT", TIMEOUT
+    ).replace(
+        "$WEBSOCKET_TIMEOUT", WEBSOCKET_TIMEOUT
     )
 
     def create_sym_links(source_path, dest_path):
