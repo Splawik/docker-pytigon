@@ -167,12 +167,12 @@ if __name__ == "__main__":
         location ^~ /%s/site_media/ {
             alias /home/www-data/.pytigon/%s/media/;
         }
-        location ~ /%s(.*)/socket.io/$ {
+        location ~ /%s(.*)/channel/$ {
             proxy_http_version 1.1;
     
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            proxy_pass %s:%d/%s$1/socket.io/;
+            proxy_pass %s:%d/%s$1/channel/;
             proxy_connect_timeout       $WEBSOCKET_TIMEOUT;
             proxy_send_timeout          $WEBSOCKET_TIMEOUT;
             proxy_read_timeout          $WEBSOCKET_TIMEOUT;
@@ -204,11 +204,11 @@ if __name__ == "__main__":
     )
 
     CFG_END = """
-        location ~ (.*)/socket.io/$ {
+        location ~ (.*)/channel/$ {
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            proxy_pass http://127.0.0.1:%d$1/socket.io/;
+            proxy_pass http://127.0.0.1:%d$1/channel/;
             proxy_connect_timeout       $WEBSOCKET_TIMEOUT;
             proxy_send_timeout          $WEBSOCKET_TIMEOUT;
             proxy_read_timeout          $WEBSOCKET_TIMEOUT;
