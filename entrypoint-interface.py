@@ -145,26 +145,26 @@ if __name__ == "__main__":
         {CRT}
         {KEY}
     
-        location ^~ /static/ {{
+        location /static/ {{
             alias {STATIC_PATH}/;
         }}
 
-        location ^~ /static/%s/ {{
+        location /static/%s/ {{
             alias %s/;
         }}
     """
 
     CFG_ELEM = """
-        location ^~ /%s/static/ {
+        location /%s/static/ {
             alias STATIC_PATH/;
         }
-        location ^~ /static/%s/ {
+        location /static/%s/ {
             alias %s/;
         }
-        location ^~ /%s/static/%s/ {
+        location /%s/static/%s/ {
             alias %s/;
         }
-        location ^~ /%s/site_media/ {
+        location /%s/site_media/ {
             alias /home/www-data/.pytigon/%s/media/;
         }
         location ~ /%s(.*)/channel/$ {
@@ -178,12 +178,12 @@ if __name__ == "__main__":
             proxy_read_timeout          $WEBSOCKET_TIMEOUT;
             send_timeout                $WEBSOCKET_TIMEOUT;
         }    
-        location ~ /%s(.*)$ {
-            proxy_pass %s:%d/%s$1$is_args$args;
+        location /%s {
+            proxy_pass %s:%d/%s;
             
             proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr$is_args$args;
-            proxy_set_header X-Forwarded-For $remote_addr$is_args$args;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $remote_addr;
     
             proxy_set_header X-Forwarded-Host $host;
             proxy_set_header X-Forwarded-Proto https;
@@ -215,11 +215,11 @@ if __name__ == "__main__":
             send_timeout                $WEBSOCKET_TIMEOUT;
         }    
 
-        location ~ (.*)$ {
-            proxy_pass %s:%d$1$is_args$args;
+        location / {
+            proxy_pass %s:%d;
             proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr$is_args$args;
-            proxy_set_header X-Forwarded-For $remote_addr$is_args$args;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $remote_addr;
             proxy_connect_timeout       $TIMEOUT;
             proxy_send_timeout          $TIMEOUT;
             proxy_read_timeout          $TIMEOUT;
