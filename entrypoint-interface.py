@@ -10,8 +10,8 @@ if __name__ == "__main__":
     import pytigon
 
     PYTIGON_PATH = os.path.abspath(os.path.dirname(pytigon.__file__))
-    STATIC_PATH = os.path.join(PYTIGON_PATH, "static")
-    print("X0:", STATIC_PATH)
+    # STATIC_PATH = os.path.join(PYTIGON_PATH, "static")
+    STATIC_PATH = "/var/www/pytigon/static"
     BASE_APPS_PATH = "/var/www/pytigon/prj"
     sys.path.append(BASE_APPS_PATH)
 
@@ -154,7 +154,8 @@ if __name__ == "__main__":
         }}
     """
 
-    CFG_ELEM = """
+    CFG_ELEM = (
+        """
         location /%s/static/ {
             alias STATIC_PATH/;
         }
@@ -166,6 +167,10 @@ if __name__ == "__main__":
         }
         location /%s/site_media/ {
             alias /home/www-data/.pytigon/%s/media/;
+        }
+        location /%s/site_media_protected/ {
+            internal;
+            alias /home/www-data/.pytigon/%s/media_protected/;
         }
         location ~ /%s(.*)/channel/$ {
             proxy_http_version 1.1;
@@ -196,11 +201,10 @@ if __name__ == "__main__":
             send_timeout                $TIMEOUT;
         }
     """.replace(
-        "$TIMEOUT", TIMEOUT
-    ).replace(
-        "$WEBSOCKET_TIMEOUT", WEBSOCKET_TIMEOUT
-    ).replace(
-        "STATIC_PATH", STATIC_PATH
+            "$TIMEOUT", TIMEOUT
+        )
+        .replace("$WEBSOCKET_TIMEOUT", WEBSOCKET_TIMEOUT)
+        .replace("STATIC_PATH", STATIC_PATH)
     )
 
     CFG_END = """
@@ -324,8 +328,14 @@ if __name__ == "__main__":
     if MAIN_PRJ and not MAIN_PRJ in PRJS:
         PRJS.append(MAIN_PRJ)
 
-    port = START_CLIENT_PORT
+    cmd = (
+        "cd /var/www/pytigon && exec %s -m pytigon.ptig manage__schall collectstatic --noinput"
+        % get_executable()
+    )
+    collectstatic = subprocess.Popen(cmd, shell=True)
+    collectstatic.wait()
 
+    port = START_CLIENT_PORT
     ret_tab = []
     for prj in PRJS:
 
