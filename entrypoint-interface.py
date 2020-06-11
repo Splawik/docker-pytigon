@@ -3,16 +3,26 @@
 import subprocess
 import os
 import sys
+import pwd
 from os import environ
 
 if __name__ == "__main__":
     from pytigon_lib.schtools.tools import get_executable
+    from pytigon_lib.schtools.main_paths import get_main_paths
+
     import pytigon
 
+    environ["START_PATH"] = os.path.abspath(os.getcwd())
+
+    paths = get_main_paths()
+        
     PYTIGON_PATH = os.path.abspath(os.path.dirname(pytigon.__file__))
-    # STATIC_PATH = os.path.join(PYTIGON_PATH, "static")
-    STATIC_PATH = "/var/www/pytigon/static"
-    BASE_APPS_PATH = "/var/www/pytigon/prj"
+    STATIC_PATH = paths['STATIC_PATH']
+    DATA_PATH = paths['DATA_PATH']
+    PRJ_PATH = paths['PRJ_PATH']
+    PRJ_PATH_ALT = paths['PRJ_PATH_ALT']
+    BASE_APPS_PATH = paths['PRJ_PATH']
+    LOCAL_IP = "http://127.0.0.1" 
     sys.path.append(BASE_APPS_PATH)
 
     if "VIRTUAL_HOST" in environ:
@@ -146,45 +156,38 @@ if __name__ == "__main__":
         {KEY}
     
         location /static/ {{
-            alias {STATIC_PATH}/;
+            alias {STATIC_PATH}/$PRJ/;
+            autoindex on;
         }}
 
-        location /static/%s/ {{
-            alias %s/;
-        }}
     """
 
-    CFG_ELEM = (
-        """
-        location /%s/static/ {
-            alias STATIC_PATH/;
-        }
-        location /static/%s/ {
-            alias %s/;
-        }
-        location /%s/static/%s/ {
-            alias %s/;
-        }
-        location /%s/site_media/ {
-            alias /home/www-data/.pytigon/%s/media/;
-        }
-        location /%s/site_media_protected/ {
+    CFG_ELEM =  f"""
+        location /$PRJ/static/ {{
+            alias {STATIC_PATH}/$PRJ/;
+            autoindex on;
+        }}
+        location /$PRJ/site_media/ {{
+            alias {DATA_PATH}/$PRJ/media/;
+            autoindex on;
+        }}
+        location /$PRJ/site_media_protected/ {{
             internal;
-            alias /home/www-data/.pytigon/%s/media_protected/;
-        }
-        location ~ /%s(.*)/channel/$ {
+            alias {DATA_PATH}/$PRJ/media_protected/;
+        }}
+        location ~ /$PRJ(.*)/channel/$ {{
             proxy_http_version 1.1;
     
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            proxy_pass %s:%d/%s$1/channel/;
-            proxy_connect_timeout       $WEBSOCKET_TIMEOUT;
-            proxy_send_timeout          $WEBSOCKET_TIMEOUT;
-            proxy_read_timeout          $WEBSOCKET_TIMEOUT;
-            send_timeout                $WEBSOCKET_TIMEOUT;
-        }    
-        location /%s {
-            proxy_pass %s:%d/%s;
+            proxy_pass {LOCAL_IP}:$PORT/$PRJ$1/channel/;
+            proxy_connect_timeout       {WEBSOCKET_TIMEOUT};
+            proxy_send_timeout          {WEBSOCKET_TIMEOUT};
+            proxy_read_timeout          {WEBSOCKET_TIMEOUT};
+            send_timeout                {WEBSOCKET_TIMEOUT};
+        }}    
+        location /$PRJ {{
+            proxy_pass {LOCAL_IP}:$PORT/$PRJ;
             
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -195,46 +198,37 @@ if __name__ == "__main__":
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
                     
-            proxy_connect_timeout       $TIMEOUT;
-            proxy_send_timeout          $TIMEOUT;
-            proxy_read_timeout          $TIMEOUT;
-            send_timeout                $TIMEOUT;
-        }
-    """.replace(
-            "$TIMEOUT", TIMEOUT
-        )
-        .replace("$WEBSOCKET_TIMEOUT", WEBSOCKET_TIMEOUT)
-        .replace("STATIC_PATH", STATIC_PATH)
-    )
+            proxy_connect_timeout       {TIMEOUT};
+            proxy_send_timeout          {TIMEOUT};
+            proxy_read_timeout          {TIMEOUT};
+            send_timeout                {TIMEOUT};
+        }}
+    """
 
-    CFG_END = """
-        location ~ (.*)/channel/$ {
+    CFG_END = f"""
+        location ~ (.*)/channel/$ {{
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            proxy_pass http://127.0.0.1:%d$1/channel/;
-            proxy_connect_timeout       $WEBSOCKET_TIMEOUT;
-            proxy_send_timeout          $WEBSOCKET_TIMEOUT;
-            proxy_read_timeout          $WEBSOCKET_TIMEOUT;
-            send_timeout                $WEBSOCKET_TIMEOUT;
-        }    
+            proxy_pass {LOCAL_IP}:$PORT$1/channel/;
+            proxy_connect_timeout       {WEBSOCKET_TIMEOUT};
+            proxy_send_timeout          {WEBSOCKET_TIMEOUT};
+            proxy_read_timeout          {WEBSOCKET_TIMEOUT};
+            send_timeout                {WEBSOCKET_TIMEOUT};
+        }}    
 
-        location / {
-            proxy_pass %s:%d;
+        location / {{
+            proxy_pass {LOCAL_IP}:$PORT;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $remote_addr;
-            proxy_connect_timeout       $TIMEOUT;
-            proxy_send_timeout          $TIMEOUT;
-            proxy_read_timeout          $TIMEOUT;
-            send_timeout                $TIMEOUT;
-        }   
-    }
-    """.replace(
-        "$TIMEOUT", TIMEOUT
-    ).replace(
-        "$WEBSOCKET_TIMEOUT", WEBSOCKET_TIMEOUT
-    )
+            proxy_connect_timeout       {TIMEOUT};
+            proxy_send_timeout          {TIMEOUT};
+            proxy_read_timeout          {TIMEOUT};
+            send_timeout                {TIMEOUT};
+        }}   
+    }}
+    """
 
     def create_sym_links(source_path, dest_path):
         if os.path.exists(source_path) and os.path.exists(dest_path):
@@ -246,7 +240,7 @@ if __name__ == "__main__":
                     os.symlink(s_path, d_path)
 
     create_sym_links("/pytigon/prj/", "/var/www/pytigon/prj/")
-    create_sym_links("/pytigon/static/app/", "/var/www/pytigon/static/app/")
+    #create_sym_links("/pytigon/static/app/", "/var/www/pytigon/static/app/")
 
     for ff in os.listdir(BASE_APPS_PATH):
         if os.path.isdir(os.path.join(BASE_APPS_PATH, ff)):
@@ -285,61 +279,46 @@ if __name__ == "__main__":
         if PORT_80_REDIRECT:
             conf.write(CFG_OLD)
 
-        path = f"/var/www/pytigon/prj/{MAIN_PRJ}/static/{MAIN_PRJ}"
-        if not os.path.exists(path):
-            path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{MAIN_PRJ}/static/{MAIN_PRJ}"
-
-        conf.write(CFG_START % (MAIN_PRJ, path))
+        #conf.write(CFG_START % MAIN_PRJ)
+        conf.write(CFG_START.replace("$PRJ",MAIN_PRJ))
 
         port = START_CLIENT_PORT
         for prj in PRJS:
 
-            path = f"/var/www/pytigon/prj/{prj}/static/{prj}"
+            path = f"{PRJ_PATH}/{prj}/static/{prj}"
             if not os.path.exists(path):
-                path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}/static/{prj}"
+                path = f"{PRJ_PATH_ALT}/{prj}/static/{prj}"
 
-            conf.write(
-                CFG_ELEM
-                % (
-                    prj,
-                    prj,
-                    path,
-                    prj,
-                    prj,
-                    path,
-                    prj,
-                    prj,
-                    prj,
-                    prj,
-                    prj,
-                    "http://127.0.0.1",
-                    port,
-                    prj,
-                    prj,
-                    "http://127.0.0.1",
-                    port,
-                    prj,
-                )
+            conf.write( goes on a wild cowgirl fucking ride in the
+                CFG_ELEM.replace("$PRJ",prj).replace('$PORT', str(port))
             )
             port += 1
         if MAIN_PRJ:
             if NGINX_INCLUDE:
                 conf.write("    include %s;\n\n" % NGINX_INCLUDE)
-            conf.write(CFG_END % (port, "http://127.0.0.1", port))
+            conf.write(CFG_END.replace('$PORT',str(port)))
 
     if MAIN_PRJ and not MAIN_PRJ in PRJS:
         PRJS.append(MAIN_PRJ)
 
-    cmd = (
-        "cd /var/www/pytigon && exec %s -m pytigon.ptig manage__schall collectstatic --noinput"
-        % get_executable()
-    )
-    collectstatic = subprocess.Popen(cmd, shell=True)
-    collectstatic.wait()
 
     port = START_CLIENT_PORT
     ret_tab = []
+    uid, gid =  pwd.getpwnam('www-data').pw_uid, pwd.getpwnam('www-data').pw_uid
     for prj in PRJS:
+
+        static_path = os.path.join(DATA_PATH, "static", prj)
+        if not os.path.exists(static_path):
+            os.makedirs(static_path)
+            os.chown(static_path, uid, gid) 
+
+        cmd = (
+            f"cd /var/www/pytigon && exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput"
+            % get_executable()
+        )
+        collectstatic = subprocess.Popen(cmd, shell=True)
+        collectstatic.wait()
+
 
         if prj in NOWP:
             count = NOWP[prj]
@@ -349,10 +328,10 @@ if __name__ == "__main__":
             )
 
         if prj in NO_ASGI:
-            server = f"gunicorn -b 0.0.0.0:{port} -w {count} --access-logfile /var/log/pytigon-access.log --log-file /var/log/pytigon-err.log wsgi -t {TIMEOUT}"
+            server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} --access-logfile /var/log/pytigon-access.log --log-file /var/log/pytigon-err.log wsgi -t {TIMEOUT}"
         else:
-            server1 = f"hypercorn -b 0.0.0.0:{port} -w {count} --access-log /var/log/pytigon-access.log --error-log /var/log/pytigon-err.log asgi:application"
-            server2 = f"gunicorn -b 0.0.0.0:{port} -w {count} -k uvicorn.workers.UvicornWorker --access-logfile /var/log/pytigon-access.log --log-file /var/log/pytigon-err.log asgi:application -t {TIMEOUT}"
+            server1 = f"hypercorn -b 0.0.0.0:{port} --user www-data -w {count} --access-log /var/log/pytigon-access.log --error-log /var/log/pytigon-err.log asgi:application"
+            server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker --access-logfile /var/log/pytigon-access.log --log-file /var/log/pytigon-err.log asgi:application -t {TIMEOUT}"
             server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers --access-log /var/log/pytigon-access.log asgi:application"
 
             server = (server1, server2, server3)[ASGI_SERVER_ID]
