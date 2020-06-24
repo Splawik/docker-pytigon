@@ -239,7 +239,7 @@ if __name__ == "__main__":
                 if not os.path.exists(d_path):
                     os.symlink(s_path, d_path)
 
-    create_sym_links("/pytigon/prj/", "/var/www/pytigon/prj/")
+    #create_sym_links("/pytigon/prj/", "/var/www/pytigon/prj/")
     #create_sym_links("/pytigon/static/app/", "/var/www/pytigon/static/app/")
 
     for ff in os.listdir(BASE_APPS_PATH):
@@ -336,7 +336,7 @@ if __name__ == "__main__":
 
             server = (server1, server2, server3)[ASGI_SERVER_ID]
 
-        path = f"/var/www/pytigon/prj/{prj}"
+        path = f"/home/www-data/.pytigon/prj/{prj}"
         if not os.path.exists(path):
             path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}"
 
@@ -348,7 +348,7 @@ if __name__ == "__main__":
 
     if not "NO_EXECUTE_TASKS" in environ:
         for prj in PRJS:
-            cmd = "cd /var/www/pytigon && exec %s -m pytigon.pytigon_task %s" % (
+            cmd = "cd /home/www-data/.pytigon && exec %s -m pytigon.pytigon_task %s" % (
                 get_executable(),
                 prj,
             )
