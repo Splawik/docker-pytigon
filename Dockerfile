@@ -46,17 +46,13 @@ RUN mkdir /home/www-data && \
 RUN apt-get -y install postgresql-client postgresql-client-common libpq-dev
 
 RUN pip3 install django-filer
-RUN ls
 RUN pip3 install git+https://github.com/Splawik/pytigon.git
 RUN pip3 uninstall pytigon-lib -y
 RUN pip3 install git+https://github.com/Splawik/pytigon-lib.git 
 
-RUN pip3 install psycopg2 hypercorn --upgrade
+RUN pip3 install psycopg2-binary psycopg2 channels_redis graphviz gunicorn uvicorn hypercorn --upgrade
 
 EXPOSE 80
 EXPOSE 443
-EXPOSE 8000
-EXPOSE 8001
-EXPOSE 8002
 
 CMD ["python3.7", "entrypoint-interface.py"]
