@@ -118,7 +118,7 @@ if __name__ == "__main__":
         CFG_OLD = f"""server {{
            listen         {VIRTUAL_PORT_80};
            server_name    {VIRTUAL_HOST} www.{VIRTUAL_HOST};
-           return         301 {PORT_80_REDIRECT};
+           return         301 {PORT_80_REDIRECT}$request_uri;
     }}
     
     """
