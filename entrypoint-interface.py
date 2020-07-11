@@ -348,7 +348,11 @@ if __name__ == "__main__":
 
     if not "NO_EXECUTE_TASKS" in environ:
         for prj in PRJS:
-            cmd = "cd /home/www-data/.pytigon && exec %s -m pytigon.pytigon_task %s" % (
+            #cmd = "cd /home/www-data/.pytigon && exec %s -m pytigon.pytigon_task %s" % (
+            #    get_executable(),
+            #    prj,
+            #)
+            cmd = "cd /home/www-data/.pytigon && su - www-data -s /bin/sh -c 'exec python3.7 -m pytigon.pytigon_task %s'" % (
                 get_executable(),
                 prj,
             )
