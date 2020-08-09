@@ -52,6 +52,9 @@ RUN pip3 install git+https://github.com/Splawik/pytigon-lib.git
 
 RUN pip3 install psycopg2-binary psycopg2 channels_redis graphviz gunicorn uvicorn hypercorn --upgrade
 
+RUN pip3 install https://github.com/groveco/django-sql-explorer/tarball/master#egg=package-1.0 --upgrade
+RUN pip3 install https://github.com/OmenApps/django-polymorphic/tarball/master --upgrade
+
 EXPOSE 80
 EXPOSE 443
 
