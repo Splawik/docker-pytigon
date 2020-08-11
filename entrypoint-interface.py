@@ -312,10 +312,16 @@ if __name__ == "__main__":
             os.makedirs(static_path)
             os.chown(static_path, uid, gid) 
 
+        #cmd = (
+        #    f"cd /var/www/pytigon && exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput"
+        #    % get_executable()
+        #)
         cmd = (
-            f"cd /var/www/pytigon && exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput"
+            f"cd /var/www/pytigon && su - www-data -s /bin/sh -c  'exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
             % get_executable()
         )
+        
+        
         collectstatic = subprocess.Popen(cmd, shell=True)
         collectstatic.wait()
 
