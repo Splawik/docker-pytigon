@@ -317,7 +317,7 @@ if __name__ == "__main__":
         #    % get_executable()
         #)
         
-       cmd = (
+        cmd = (
             f"cd /var/www/pytigon && su - www-data -s /bin/sh -c 'cd /var/www/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
             % get_executable()
         )
