@@ -316,11 +316,14 @@ if __name__ == "__main__":
         #    f"cd /var/www/pytigon && exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput"
         #    % get_executable()
         #)
-        cmd = (
-            f"cd /var/www/pytigon && su - www-data -s /bin/sh -c  'exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
+        
+       cmd = (
+            f"cd /var/www/pytigon && su - www-data -s /bin/sh -c 'cd /var/www/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
             % get_executable()
         )
-        
+
+        subprocess.Popen("chmod -R 777 /usr/local/lib/python3.7/dist-packages/pytigon/static", shell=True)
+        subprocess.Popen("chmod -R 777 /home/www-data/.pytigon/static", shell=True)
         
         collectstatic = subprocess.Popen(cmd, shell=True)
         collectstatic.wait()
