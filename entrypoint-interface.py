@@ -305,6 +305,7 @@ if __name__ == "__main__":
     port = START_CLIENT_PORT
     ret_tab = []
     uid, gid =  pwd.getpwnam('www-data').pw_uid, pwd.getpwnam('www-data').pw_uid
+    os.chown(DATA_PATH, uid, gid) 
     for prj in PRJS:
 
         static_path = os.path.join(DATA_PATH, "static", prj)
