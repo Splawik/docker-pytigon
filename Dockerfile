@@ -31,6 +31,7 @@ RUN mkdir /root/.pytigon
 RUN mkdir /root/.pytigon/prj
 
 ADD ./entrypoint-interface.py /var/www/pytigon/entrypoint-interface.py
+ADD ./entrypoint-interface-scheduler.sh /var/www/pytigon/entrypoint-interface-scheduler.sh
 
 WORKDIR /var/www/pytigon
 

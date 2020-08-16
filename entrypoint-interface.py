@@ -15,14 +15,14 @@ if __name__ == "__main__":
     environ["START_PATH"] = os.path.abspath(os.getcwd())
 
     paths = get_main_paths()
-        
+
     PYTIGON_PATH = os.path.abspath(os.path.dirname(pytigon.__file__))
-    STATIC_PATH = paths['STATIC_PATH']
-    DATA_PATH = paths['DATA_PATH']
-    PRJ_PATH = paths['PRJ_PATH']
-    PRJ_PATH_ALT = paths['PRJ_PATH_ALT']
-    BASE_APPS_PATH = paths['PRJ_PATH']
-    LOCAL_IP = "http://127.0.0.1" 
+    STATIC_PATH = paths["STATIC_PATH"]
+    DATA_PATH = paths["DATA_PATH"]
+    PRJ_PATH = paths["PRJ_PATH"]
+    PRJ_PATH_ALT = paths["PRJ_PATH_ALT"]
+    BASE_APPS_PATH = paths["PRJ_PATH"]
+    LOCAL_IP = "http://127.0.0.1"
     sys.path.append(BASE_APPS_PATH)
 
     if "VIRTUAL_HOST" in environ:
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
     """
 
-    CFG_ELEM =  f"""
+    CFG_ELEM = f"""
         location /$PRJ/static/ {{
             alias {STATIC_PATH}/$PRJ/;
             autoindex on;
@@ -239,9 +239,6 @@ if __name__ == "__main__":
                 if not os.path.exists(d_path):
                     os.symlink(s_path, d_path)
 
-    #create_sym_links("/pytigon/prj/", "/var/www/pytigon/prj/")
-    #create_sym_links("/pytigon/static/app/", "/var/www/pytigon/static/app/")
-
     for ff in os.listdir(BASE_APPS_PATH):
         if os.path.isdir(os.path.join(BASE_APPS_PATH, ff)):
             if not ff.startswith("_"):
@@ -279,8 +276,7 @@ if __name__ == "__main__":
         if PORT_80_REDIRECT:
             conf.write(CFG_OLD)
 
-        #conf.write(CFG_START % MAIN_PRJ)
-        conf.write(CFG_START.replace("$PRJ",MAIN_PRJ))
+        conf.write(CFG_START.replace("$PRJ", MAIN_PRJ))
 
         port = START_CLIENT_PORT
         for prj in PRJS:
@@ -289,46 +285,39 @@ if __name__ == "__main__":
             if not os.path.exists(path):
                 path = f"{PRJ_PATH_ALT}/{prj}/static/{prj}"
 
-            conf.write(
-                CFG_ELEM.replace("$PRJ",prj).replace('$PORT', str(port))
-            )
+            conf.write(CFG_ELEM.replace("$PRJ", prj).replace("$PORT", str(port)))
             port += 1
         if MAIN_PRJ:
             if NGINX_INCLUDE:
                 conf.write("    include %s;\n\n" % NGINX_INCLUDE)
-            conf.write(CFG_END.replace('$PORT',str(port)))
+            conf.write(CFG_END.replace("$PORT", str(port)))
 
     if MAIN_PRJ and not MAIN_PRJ in PRJS:
         PRJS.append(MAIN_PRJ)
 
-
     port = START_CLIENT_PORT
     ret_tab = []
-    uid, gid =  pwd.getpwnam('www-data').pw_uid, pwd.getpwnam('www-data').pw_uid
-    os.chown(DATA_PATH, uid, gid) 
+    uid, gid = pwd.getpwnam("www-data").pw_uid, pwd.getpwnam("www-data").pw_uid
+    os.chown(DATA_PATH, uid, gid)
+    subprocess.Popen(
+        "chmod -R 777 /usr/local/lib/python3.7/dist-packages/pytigon/static", shell=True
+    )
+    subprocess.Popen("chmod -R 777 /home/www-data/.pytigon/static", shell=True)
+
     for prj in PRJS:
 
         static_path = os.path.join(DATA_PATH, "static", prj)
         if not os.path.exists(static_path):
             os.makedirs(static_path)
-            os.chown(static_path, uid, gid) 
+            os.chown(static_path, uid, gid)
 
-        #cmd = (
-        #    f"cd /var/www/pytigon && exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput"
-        #    % get_executable()
-        #)
-        
         cmd = (
             f"cd /var/www/pytigon && su - www-data -s /bin/sh -c 'cd /var/www/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
             % get_executable()
         )
 
-        subprocess.Popen("chmod -R 777 /usr/local/lib/python3.7/dist-packages/pytigon/static", shell=True)
-        subprocess.Popen("chmod -R 777 /home/www-data/.pytigon/static", shell=True)
-        
         collectstatic = subprocess.Popen(cmd, shell=True)
         collectstatic.wait()
-
 
         if prj in NOWP:
             count = NOWP[prj]
@@ -358,13 +347,9 @@ if __name__ == "__main__":
 
     if not "NO_EXECUTE_TASKS" in environ:
         for prj in PRJS:
-            #cmd = "cd /home/www-data/.pytigon && exec %s -m pytigon.pytigon_task %s" % (
-            #    get_executable(),
-            #    prj,
-            #)
-            cmd = "cd /home/www-data/.pytigon && su - www-data -s /bin/sh -c 'exec python3.7 -m pytigon.pytigon_task %s'" % (
-                get_executable(),
-                prj,
+            cmd = (
+                "cd /home/www-data/.pytigon && su - www-data -s /bin/sh -c 'exec python3.7 -m pytigon.pytigon_task %s'"
+                % (get_executable(), prj)
             )
             print(cmd)
             ret_tab.append(subprocess.Popen(cmd, shell=True))
