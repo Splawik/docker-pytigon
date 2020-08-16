@@ -25,6 +25,25 @@ if __name__ == "__main__":
     LOCAL_IP = "http://127.0.0.1"
     sys.path.append(BASE_APPS_PATH)
 
+    uid, gid = pwd.getpwnam("www-data").pw_uid, pwd.getpwnam("www-data").pw_uid
+
+    os.chown(DATA_PATH, uid, gid)
+
+    if not os.path.exists(BASE_APPS_PATH):
+        os.makedirs(BASE_APPS_PATH)
+        os.chown(BASE_APPS_PATH, uid, gid)
+
+    if not os.path.exists("/home/www-data/.pytigon/static"):
+        os.makedirs("/home/www-data/.pytigon/static")
+
+    # hack:
+    subprocess.Popen("chmod -R 777 /home/www-data/.pytigon/static", shell=True)
+
+    subprocess.Popen(
+        "chmod -R 777 /usr/local/lib/python3.7/dist-packages/pytigon/static", shell=True
+    )
+    # hack end
+
     if "VIRTUAL_HOST" in environ:
         VIRTUAL_HOST = str(environ["VIRTUAL_HOST"])
     else:
@@ -297,12 +316,6 @@ if __name__ == "__main__":
 
     port = START_CLIENT_PORT
     ret_tab = []
-    uid, gid = pwd.getpwnam("www-data").pw_uid, pwd.getpwnam("www-data").pw_uid
-    os.chown(DATA_PATH, uid, gid)
-    subprocess.Popen(
-        "chmod -R 777 /usr/local/lib/python3.7/dist-packages/pytigon/static", shell=True
-    )
-    subprocess.Popen("chmod -R 777 /home/www-data/.pytigon/static", shell=True)
 
     for prj in PRJS:
 
