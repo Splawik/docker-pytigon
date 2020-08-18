@@ -52,8 +52,11 @@ if __name__ == "__main__":
     if "VIRTUAL_PORT" in environ:
         VIRTUAL_PORT = str(environ["VIRTUAL_PORT"])
     else:
-        VIRTUAL_PORT = "443"
-
+        if "CERT" in environ:
+            VIRTUAL_PORT = "443"
+        else:
+            VIRTUAL_PORT = "80"
+            
     if "VIRTUAL_PORT_80" in environ:
         VIRTUAL_PORT_80 = str(environ["VIRTUAL_PORT_80"])
     else:
