@@ -28,6 +28,7 @@ if __name__ == "__main__":
     uid, gid = pwd.getpwnam("www-data").pw_uid, pwd.getpwnam("www-data").pw_uid
 
     os.chown(DATA_PATH, uid, gid)
+    os.chown("/var/log", uid, gid)
 
     if not os.path.exists(BASE_APPS_PATH):
         os.makedirs(BASE_APPS_PATH)
