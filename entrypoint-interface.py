@@ -6,6 +6,7 @@ import sys
 import pwd
 from os import environ
 
+
 if __name__ == "__main__":
     from pytigon_lib.schtools.tools import get_executable
     from pytigon_lib.schtools.main_paths import get_main_paths
@@ -13,18 +14,11 @@ if __name__ == "__main__":
     import pytigon
 
     environ["START_PATH"] = os.path.abspath(os.getcwd())
-    if "LOGS_TO_DOCKER" in environ and environ["LOGS_TO_DOCKER"]:
-        log_to_docker = True
-        access_logfile = ""
-        access_log = "--access-log - "
-        log_file = ""
-        error_log = ""
-    else:
-        log_to_docker = False
-        access_logfile = "--access-logfile /var/log/pytigon-access.log"
-        access_log = access_logfile.replace("logfile", "log")
-        log_file = "--log-file /var/log/pytigon-worker-err.log"
-        error_logfile = "--error-logfile /var/log/pytigon-worker-err.log"
+
+    access_logfile = "--access-logfile /var/log/pytigon-access.log"
+    access_log = access_logfile.replace("logfile", "log")
+    log_file = "--log-file /var/log/pytigon-worker-err.log"
+    error_logfile = "--error-logfile /var/log/pytigon-worker-err.log"
 
     paths = get_main_paths()
 
@@ -40,26 +34,10 @@ if __name__ == "__main__":
     uid, gid = pwd.getpwnam("www-data").pw_uid, pwd.getpwnam("www-data").pw_uid
 
     os.chown(DATA_PATH, uid, gid)
-    if "LOGS_TO_DOCKER" in environ:
-        buf = []
-        update_nginx = False
-        with open("/etc/nginx/nginx.conf", "rt") as f:
-            for line in f:
-                if 'access_log' in f:
-                    buf.append("\terror_log  stderr warn;\n")
-                    buf.append("\taccess_log  /dev/stdout main;\n")
-                    update_nginx = True
-                elif 'error_log' in f:
-                    pass
-                else:
-                    buf.append(line)
-        if update_nginx:
-            with open("/etc/nginx/nginx.conf", "wt") as f:
-                f.write(buf.join(""))
-    else:
-        os.chown("/var/log", uid, gid)
-        if not os.path.exists("/var/log/nginx"):
-            os.makedirs("/var/log/nginx")
+    os.chown("/var/log", uid, gid)
+
+    if not os.path.exists("/var/log/nginx"):
+        os.makedirs("/var/log/nginx")
 
     if not os.path.exists(BASE_APPS_PATH):
         os.makedirs(BASE_APPS_PATH)
@@ -88,7 +66,7 @@ if __name__ == "__main__":
             VIRTUAL_PORT = "443"
         else:
             VIRTUAL_PORT = "80"
-            
+
     if "VIRTUAL_PORT_80" in environ:
         VIRTUAL_PORT_80 = str(environ["VIRTUAL_PORT_80"])
     else:
@@ -162,7 +140,6 @@ if __name__ == "__main__":
             ASGI_SERVER_ID = 2
 
     START_CLIENT_PORT = 8000
-
     PRJS = []
     PRJ_FOLDERS = []
     MAIN_PRJ = None
@@ -174,7 +151,7 @@ if __name__ == "__main__":
            server_name    {VIRTUAL_HOST} www.{VIRTUAL_HOST};
            return         301 {PORT_80_REDIRECT}$request_uri;
     }}
-    
+
     """
 
     if CRT:
@@ -184,38 +161,37 @@ if __name__ == "__main__":
         client_max_body_size 50M;
         server_name www.{VIRTUAL_HOST};
         charset utf-8;
-    
+
         {CRT}
         {KEY}
-    
+
         return 301 {PORT_80_REDIRECT}$request_uri;
     }}"""
     else:
         CFG_START = ""
 
     CFG_START += f"""
-    
+
     map $http_upgrade $connection_upgrade {{
         default upgrade;
         ''      close;
     }}
-    
+
     server {{
         listen {VIRTUAL_PORT};
         client_max_body_size 50M;
         server_name {VIRTUAL_HOST};
         charset utf-8;
-    
+
         {CRT}
         {KEY}
-    
+
         location /static/ {{
             alias {STATIC_PATH}/$PRJ/;
             autoindex on;
         }}
 
     """
-
     CFG_ELEM = f"""
         location /$PRJ/static/ {{
             alias {STATIC_PATH}/$PRJ/;
@@ -231,7 +207,7 @@ if __name__ == "__main__":
         }}
         location ~ /$PRJ(.*)/channel/$ {{
             proxy_http_version 1.1;
-    
+
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
             proxy_pass {LOCAL_IP}:$PORT/$PRJ$1/channel/;
@@ -239,26 +215,25 @@ if __name__ == "__main__":
             proxy_send_timeout          {WEBSOCKET_TIMEOUT};
             proxy_read_timeout          {WEBSOCKET_TIMEOUT};
             send_timeout                {WEBSOCKET_TIMEOUT};
-        }}    
+        }}
         location /$PRJ {{
             proxy_pass {LOCAL_IP}:$PORT/$PRJ;
-            
+
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $remote_addr;
-    
+
             proxy_set_header X-Forwarded-Host $host;
             proxy_set_header X-Forwarded-Proto https;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
-                    
+
             proxy_connect_timeout       {TIMEOUT};
             proxy_send_timeout          {TIMEOUT};
             proxy_read_timeout          {TIMEOUT};
             send_timeout                {TIMEOUT};
         }}
     """
-
     CFG_END = f"""
         location ~ (.*)/channel/$ {{
             proxy_http_version 1.1;
@@ -269,7 +244,7 @@ if __name__ == "__main__":
             proxy_send_timeout          {WEBSOCKET_TIMEOUT};
             proxy_read_timeout          {WEBSOCKET_TIMEOUT};
             send_timeout                {WEBSOCKET_TIMEOUT};
-        }}    
+        }}
 
         location / {{
             proxy_pass {LOCAL_IP}:$PORT;
@@ -280,7 +255,7 @@ if __name__ == "__main__":
             proxy_send_timeout          {TIMEOUT};
             proxy_read_timeout          {TIMEOUT};
             send_timeout                {TIMEOUT};
-        }}   
+        }}
     }}
     """
 
@@ -375,11 +350,11 @@ if __name__ == "__main__":
             )
 
         if prj in NO_ASGI:
-            server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {errorlog_file} wsgi -t {TIMEOUT}"
+            server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
         else:
             server1 = f"hypercorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} asgi:application"
-            server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker {access_logfile} {errorlog-file} asgi:application -t {TIMEOUT}"
-            server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers {access-log} asgi:application"
+            server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
+            server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers {access_log} asgi:application"
 
             server = (server1, server2, server3)[ASGI_SERVER_ID]
 
@@ -400,7 +375,7 @@ if __name__ == "__main__":
                 % (get_executable(), prj)
             )
             print(cmd)
-            ret_tab.append(subprocess.Popen(cmd, shell=True))
+            ret_tab.append(subprocess.Popen(cmd, shell=False))
 
     restart = subprocess.Popen("nginx -g 'daemon off;'", shell=True)
     restart.wait()
