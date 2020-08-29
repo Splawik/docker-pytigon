@@ -15,10 +15,16 @@ if __name__ == "__main__":
 
     environ["START_PATH"] = os.path.abspath(os.getcwd())
 
-    access_logfile = "--access-logfile /var/log/pytigon-access.log"
-    access_log = access_logfile.replace("logfile", "log")
-    log_file = "--log-file /var/log/pytigon-worker-err.log"
-    error_logfile = "--error-logfile /var/log/pytigon-worker-err.log"
+    if "LOGS_TO_DOCKER" in environ and environ["LOGS_TO_DOCKER"]:
+        access_logfile = "--access-logfile -"
+        access_log = access_logfile.replace("logfile", "log")
+        log_file = "--log-file -"
+        error_logfile = "--error-logfile -"
+    else:
+        access_logfile = "--access-logfile /var/log/pytigon-access.log"
+        access_log = access_logfile.replace("logfile", "log")
+        log_file = "--log-file /var/log/pytigon-worker-err.log"
+        error_logfile = "--error-logfile /var/log/pytigon-worker-err.log"
 
     paths = get_main_paths()
 
@@ -335,7 +341,7 @@ if __name__ == "__main__":
             os.chown(static_path, uid, gid)
 
         cmd = (
-            f"cd /var/www/pytigon && su - www-data -s /bin/sh -c 'cd /var/www/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
+            f"cd /var/www/pytigon && su -m - www-data -s /bin/sh -c 'cd /var/www/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
             % get_executable()
         )
 
@@ -371,11 +377,10 @@ if __name__ == "__main__":
     if not "NO_EXECUTE_TASKS" in environ:
         for prj in PRJS:
             cmd = (
-                "cd /home/www-data/.pytigon && su - www-data -s /bin/sh -c 'exec python3.7 -m pytigon.pytigon_task %s'"
+                "cd /home/www-data/.pytigon && su -m - www-data -s /bin/sh -c 'exec %s -m pytigon.pytigon_task %s'"
                 % (get_executable(), prj)
             )
-            print(cmd)
-            ret_tab.append(subprocess.Popen(cmd, shell=False))
+            ret_tab.append(subprocess.Popen(cmd, shell=True))
 
     restart = subprocess.Popen("nginx -g 'daemon off;'", shell=True)
     restart.wait()

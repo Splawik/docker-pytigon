@@ -44,16 +44,6 @@ RUN mkdir /home/www-data && \
     rm /etc/nginx/sites-available/default && \
     rm /etc/nginx/sites-enabled/default
 
-RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
-    ln -sf /dev/stderr /var/log/nginx/error.log && \
-    ln -sf /dev/stdout /var/log/pytigon.log && \
-    ln -sf /dev/stderr /var/log/pytigon-err.log && \
-    ln -sf /dev/stdout /var/log/pytigon_task.log && \
-    ln -sf /dev/stderr /var/log/pytigon-err_task.log
-
-RUN chown www-data:www-data /dev/stdout && \
-    chown www-data:www-data /dev/stderr
-
 RUN apt-get -y install postgresql-client postgresql-client-common libpq-dev
 
 RUN pip3 install django-filer
