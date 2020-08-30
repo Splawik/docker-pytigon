@@ -56,15 +56,12 @@ spec:
               value: ???
             - name: WEBSOCKET_TIMEOUT
               value: "15"
+            - name: LOGS_TO_DOCKER
+              value: "1"
           volumeMounts:
             - mountPath: /home/www-data/.pytigon
               name: www-data
-            - mountPath: /var/log
-              name: log-data
       volumes:
         - name: www-data
           persistentVolumeClaim:
             claimName: www-data
-        - name: log-data
-          persistentVolumeClaim:
-            claimName: log-data
