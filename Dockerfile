@@ -25,20 +25,15 @@ RUN curl https://bootstrap.pypa.io/get-pip.py | python3.7
 RUN apt-get install -y mysql-client libmysqlclient-dev && \
     apt-get install -y nginx zip
 
-RUN mkdir /var/www/pytigon
-RUN mkdir /var/www/pytigon/ext_prg
-RUN mkdir /root/.pytigon
-RUN mkdir /root/.pytigon/prj
+RUN mkdir -p /home/www-data/pytigon/ext_prg
+RUN mkdir -p /home/www-data/.pytigon/temp
 
-ADD ./entrypoint-interface.py /var/www/pytigon/entrypoint-interface.py
-ADD ./entrypoint-interface-scheduler.sh /var/www/pytigon/entrypoint-interface-scheduler.sh
+ADD ./entrypoint-interface.py /home/www-data/pytigon/entrypoint-interface.py
+ADD ./entrypoint-interface-scheduler.sh /home/www-data/pytigon/entrypoint-interface-scheduler.sh
 
-WORKDIR /var/www/pytigon
+WORKDIR /home/www-data/pytigon
 
-RUN mkdir /home/www-data && \
-    mkdir /home/www-data/.pytigon && \
-    mkdir /home/www-data/.pytigon/temp && \
-    chown -R www-data:www-data /home/www-data && \
+RUN chown -R www-data:www-data /home/www-data && \
     usermod -d /home/www-data www-data && \
     ln -s /etc/nginx/sites-available/pytigon /etc/nginx/sites-enabled/pytigon && \
     rm /etc/nginx/sites-available/default && \

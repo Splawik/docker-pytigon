@@ -9,7 +9,7 @@ services:
       - "pytigon_db:?"
     environment:
       - DATABASE_URL=?
-      - LD_RUN_PATH=/var/www/pytigon/ext_prg/tcc
+      - LD_RUN_PATH=/home/www-data/pytigon/ext_prg/tcc
       - PYTIGON_NO_DEBUG=1
       - CERT=/etc/cert/fullchain.pem;/etc/cert/privkey.pem
       - VIRTUAL_HOST=?
@@ -19,7 +19,7 @@ services:
       - CACHE_URL=redis://redis:6379/2
       - SECRET_KEY=?
       - EMAIL_URL=?
-      - PYTIGON_ROOT_PATH=/var/www/pytigon/
+      - PYTIGON_ROOT_PATH=/home/www-data/pytigon/
       - NO_EXECUTE_TASKS=1
       - INCLUDE_SETUP=True
       - INCLUDE_DEVTOOLS=True
@@ -50,7 +50,7 @@ services:
       - "pytigon_db:?"
     environment:
       - DATABASE_URL=?
-      - LD_RUN_PATH=/var/www/pytigon/ext_prg/tcc
+      - LD_RUN_PATH=/home/www-data/pytigon/ext_prg/tcc
       - PYTIGON_NO_DEBUG=1
       - VIRTUAL_HOST=?
       - SECRET_KEY=?

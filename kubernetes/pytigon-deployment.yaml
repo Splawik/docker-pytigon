@@ -39,7 +39,7 @@ spec:
             - name: INCLUDE_SETUP
               value: "True"
             - name: LD_RUN_PATH
-              value: /var/www/pytigon/ext_prg/tcc
+              value: /home/www-data/pytigon/ext_prg/tcc
             - name: MAIN_PRJ
               value: schportal
             - name: NO_EXECUTE_TASKS
@@ -49,7 +49,7 @@ spec:
             - name: PYTIGON_NO_DEBUG
               value: "1"
             - name: PYTIGON_ROOT_PATH
-              value: /var/www/pytigon/
+              value: /home/www-data/pytigon/
             - name: SECRET_KEY
               value: ???
             - name: VIRTUAL_HOST
