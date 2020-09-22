@@ -336,46 +336,47 @@ if __name__ == "__main__":
     port = START_PORT
     ret_tab = []
 
-    for prj in PRJS:
+    if not 'RUN_DJANGO' in environ or (environ['RUN_DJANGO'] and environ['RUN_DJANGO'] != '0'):
+        for prj in PRJS:
 
-        static_path = os.path.join(DATA_PATH, "static", prj)
-        if not os.path.exists(static_path):
-            os.makedirs(static_path)
-            os.chown(static_path, uid, gid)
+            static_path = os.path.join(DATA_PATH, "static", prj)
+            if not os.path.exists(static_path):
+                os.makedirs(static_path)
+                os.chown(static_path, uid, gid)
 
-        cmd = (
-            f"cd /home/www-data/pytigon && su -m - www-data -s /bin/sh -c 'cd /home/www-data/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
-            % get_executable()
-        )
-
-        collectstatic = subprocess.Popen(cmd, shell=True)
-        collectstatic.wait()
-
-        if prj in NOWP:
-            count = NOWP[prj]
-        else:
-            count = (
-                NOWP["default-main"] if prj == MAIN_PRJ else NOWP["default-additional"]
+            cmd = (
+                f"cd /home/www-data/pytigon && su -m - www-data -s /bin/sh -c 'cd /home/www-data/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
+                % get_executable()
             )
 
-        if prj in NO_ASGI:
-            server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
-        else:
-            server1 = f"hypercorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} asgi:application"
-            server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
-            server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers {access_log} asgi:application"
+            collectstatic = subprocess.Popen(cmd, shell=True)
+            collectstatic.wait()
 
-            server = (server1, server2, server3)[ASGI_SERVER_ID]
+            if prj in NOWP:
+                count = NOWP[prj]
+            else:
+                count = (
+                    NOWP["default-main"] if prj == MAIN_PRJ else NOWP["default-additional"]
+                )
 
-        path = f"/home/www-data/.pytigon/prj/{prj}"
-        if not os.path.exists(path):
-            path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}"
+            if prj in NO_ASGI:
+                server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
+            else:
+                server1 = f"hypercorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} asgi:application"
+                server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
+                server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers {access_log} asgi:application"
 
-        cmd = f"cd {path} && exec {server}"
+                server = (server1, server2, server3)[ASGI_SERVER_ID]
 
-        port += 1
-        print(cmd)
-        ret_tab.append(subprocess.Popen(cmd, shell=True))
+            path = f"/home/www-data/.pytigon/prj/{prj}"
+            if not os.path.exists(path):
+                path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}"
+
+            cmd = f"cd {path} && exec {server}"
+
+            port += 1
+            print(cmd)
+            ret_tab.append(subprocess.Popen(cmd, shell=True))
 
     if not "RUN_TASKS_QUEUE" in environ or ( environ['RUN_TASKS_QUEUE'] and environ['RUN_TASKS_QUEUE'] != '0'):
         if "ASYNC_TASKS" in environ and (environ['ASYNC_TASKS'] and environ['ASYNC_TASKS'] == '0'):
@@ -396,6 +397,5 @@ if __name__ == "__main__":
         restart = subprocess.Popen("nginx -g 'daemon off;'", shell=True)
         restart.wait()
 
-    if not 'RUN_DJANGO' in environ or (environ['RUN_DJANGO'] and environ['RUN_DJANGO'] != '0'):
-        for pos in ret_tab:
-            pos.wait()
+    for pos in ret_tab:
+        pos.wait()
