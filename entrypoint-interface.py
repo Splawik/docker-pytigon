@@ -377,7 +377,7 @@ if __name__ == "__main__":
         print(cmd)
         ret_tab.append(subprocess.Popen(cmd, shell=True))
 
-    if not "RUN_TASKS_QUEUE" in environ or ( environ['RUN_TASKS_QUEUE'] and environ['RUN_TASKS_QUEUE'] == '0'):
+    if not "RUN_TASKS_QUEUE" in environ or ( environ['RUN_TASKS_QUEUE'] and environ['RUN_TASKS_QUEUE'] != '0'):
         if "ASYNC_TASKS" in environ and (environ['ASYNC_TASKS'] and environ['ASYNC_TASKS'] == '0'):
             for prj in PRJS:
                 cmd = (
@@ -392,10 +392,10 @@ if __name__ == "__main__":
             )
             ret_tab.append(subprocess.Popen(cmd, shell=True))
 
-    if not 'RUN_NGINX' in environ or ( environ['RUN_NGINX'] and environ['RUN_NGINX'] == '0'):
+    if not 'RUN_NGINX' in environ or ( environ['RUN_NGINX'] and environ['RUN_NGINX'] != '0'):
         restart = subprocess.Popen("nginx -g 'daemon off;'", shell=True)
         restart.wait()
 
-    if not 'RUN_DJANGO' in environ or (environ['RUN_DJANGO'] and environ['RUN_DJANGO'] == '0'):
+    if not 'RUN_DJANGO' in environ or (environ['RUN_DJANGO'] and environ['RUN_DJANGO'] != '0'):
         for pos in ret_tab:
             pos.wait()
