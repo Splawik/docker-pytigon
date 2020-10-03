@@ -1,28 +1,11 @@
-FROM ubuntu:16.04
+FROM python:3.7-buster
 
-RUN apt-get update  -y
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository -y ppa:deadsnakes/ppa
-
-RUN apt-get update  -y && \
-    apt-get upgrade -y && \
-    apt-get install -y
-
-RUN apt-get install -y build-essential checkinstall && \
-    apt-get install -y libreadline-gplv2-dev libncursesw5-dev && \
-    apt-get install -y libssl-dev libsqlite3-dev tk-dev libgdbm-dev && \
-    apt-get install -y libc6-dev libbz2-dev
-
-RUN apt-get install -y python3.7 python3.7-dev python3.7-distutils
-
-RUN apt-get update -y --fix-missing
+RUN apt-get update -y
 
 RUN apt-get install -y curl git apt-transport-https &&\
     apt-get install -y redis-server
 
-RUN curl https://bootstrap.pypa.io/get-pip.py | python3.7
-
-RUN apt-get install -y mysql-client libmysqlclient-dev && \
+RUN apt-get install -y default-mysql-client default-libmysqlclient-dev && \
     apt-get install -y nginx zip
 
 RUN mkdir -p /home/www-data/pytigon/ext_prg
@@ -46,7 +29,7 @@ RUN pip3 install git+https://github.com/Splawik/pytigon.git
 RUN pip3 uninstall pytigon-lib -y
 RUN pip3 install git+https://github.com/Splawik/pytigon-lib.git 
 
-RUN pip3 install psycopg2-binary psycopg2 channels_redis graphviz gunicorn uvicorn hypercorn --upgrade
+RUN pip3 install psycopg2-binary psycopg2 channels_redis graphviz gunicorn uvicorn uvloop hypercorn --upgrade
 
 RUN pip3 install https://github.com/groveco/django-sql-explorer/tarball/master#egg=package-1.0 --upgrade
 RUN pip3 install https://github.com/OmenApps/django-polymorphic/tarball/master --upgrade
