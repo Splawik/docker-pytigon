@@ -336,7 +336,9 @@ if __name__ == "__main__":
     port = START_PORT
     ret_tab = []
 
-    if not 'RUN_DJANGO' in environ or (environ['RUN_DJANGO'] and environ['RUN_DJANGO'] != '0'):
+    if not "RUN_DJANGO" in environ or (
+        environ["RUN_DJANGO"] and environ["RUN_DJANGO"] != "0"
+    ):
         for prj in PRJS:
 
             static_path = os.path.join(DATA_PATH, "static", prj)
@@ -345,7 +347,7 @@ if __name__ == "__main__":
                 os.chown(static_path, uid, gid)
 
             cmd = (
-                f"cd /home/www-data/pytigon && su -m - www-data -s /bin/sh -c 'cd /home/www-data/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
+                f"cd /home/www-data/pytigon && su -m www-data -s /bin/sh -c 'cd /home/www-data/pytigon; exec %s -m pytigon.ptig manage_{prj} collectstatic --noinput'"
                 % get_executable()
             )
 
@@ -356,7 +358,9 @@ if __name__ == "__main__":
                 count = NOWP[prj]
             else:
                 count = (
-                    NOWP["default-main"] if prj == MAIN_PRJ else NOWP["default-additional"]
+                    NOWP["default-main"]
+                    if prj == MAIN_PRJ
+                    else NOWP["default-additional"]
                 )
 
             if prj in NO_ASGI:
@@ -378,22 +382,28 @@ if __name__ == "__main__":
             print(cmd)
             ret_tab.append(subprocess.Popen(cmd, shell=True))
 
-    if not "RUN_TASKS_QUEUE" in environ or ( environ['RUN_TASKS_QUEUE'] and environ['RUN_TASKS_QUEUE'] != '0'):
-        if "ASYNC_TASKS" in environ and (environ['ASYNC_TASKS'] and environ['ASYNC_TASKS'] == '0'):
+    if not "RUN_TASKS_QUEUE" in environ or (
+        environ["RUN_TASKS_QUEUE"] and environ["RUN_TASKS_QUEUE"] != "0"
+    ):
+        if "ASYNC_TASKS" in environ and (
+            environ["ASYNC_TASKS"] and environ["ASYNC_TASKS"] == "0"
+        ):
             for prj in PRJS:
                 cmd = (
-                    "cd /home/www-data/.pytigon && su -m - www-data -s /bin/sh -c 'exec %s -m pytigon.pytigon_task %s'"
+                    "cd /home/www-data/.pytigon && su -m www-data -s /bin/sh -c 'exec %s -m pytigon.pytigon_task %s'"
                     % (get_executable(), prj)
                 )
                 ret_tab.append(subprocess.Popen(cmd, shell=True))
         else:
             cmd = (
-                "cd /home/www-data/.pytigon && su -m - www-data -s /bin/sh -c 'exec %s -m pytigon.ptig manage__schall qcluster'"
+                "cd /home/www-data/.pytigon && su -m www-data -s /bin/sh -c 'exec %s -m pytigon.ptig manage__schall qcluster'"
                 % get_executable()
             )
             ret_tab.append(subprocess.Popen(cmd, shell=True))
 
-    if not 'RUN_NGINX' in environ or ( environ['RUN_NGINX'] and environ['RUN_NGINX'] != '0'):
+    if not "RUN_NGINX" in environ or (
+        environ["RUN_NGINX"] and environ["RUN_NGINX"] != "0"
+    ):
         restart = subprocess.Popen("nginx -g 'daemon off;'", shell=True)
         restart.wait()
 
