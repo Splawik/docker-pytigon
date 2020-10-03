@@ -362,7 +362,7 @@ if __name__ == "__main__":
             if prj in NO_ASGI:
                 server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
             else:
-                server1 = f"hypercorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} asgi:application"
+                server1 = f"hypercorn -b 0.0.0.0:{port} --user {uid} -w {count} {access_logfile} {error_logfile} asgi:application"
                 server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
                 server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers {access_log} asgi:application"
 
