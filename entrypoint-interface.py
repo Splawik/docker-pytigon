@@ -56,7 +56,7 @@ if __name__ == "__main__":
     subprocess.Popen("chmod -R 777 /home/www-data/.pytigon/static", shell=True)
 
     subprocess.Popen(
-        "chmod -R 777 /usr/local/lib/python3.7/dist-packages/pytigon/static", shell=True
+        "chmod -R 777 /usr/local/lib/python3.7/site-packages/pytigon/static", shell=True
     )
     # hack end
 
@@ -370,7 +370,7 @@ if __name__ == "__main__":
 
             path = f"/home/www-data/.pytigon/prj/{prj}"
             if not os.path.exists(path):
-                path = f"/usr/local/lib/python3.7/dist-packages/pytigon/prj/{prj}"
+                path = f"/usr/local/lib/python3.7/site-packages/pytigon/prj/{prj}"
 
             cmd = f"cd {path} && exec {server}"
 
