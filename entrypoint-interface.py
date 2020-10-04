@@ -142,7 +142,7 @@ if __name__ == "__main__":
     if "ASGI_SERVER_NAME" in environ:
         if "gunicorn" in environ["ASGI_SERVER_NAME"]:
             ASGI_SERVER_ID = 1
-        elif "dapne" in environ["ASGI_SERVER_NAME"]:
+        elif "daphne" in environ["ASGI_SERVER_NAME"]:
             ASGI_SERVER_ID = 2
 
     if "START_PORT" in environ:
@@ -368,7 +368,7 @@ if __name__ == "__main__":
             else:
                 server1 = f"hypercorn -b 0.0.0.0:{port} --user {uid} -w {count} {access_logfile} {error_logfile} asgi:application"
                 server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
-                server3 = f"daphne -b 0.0.0.0 -p {port} --proxy-headers {access_log} asgi:application"
+                server3 = f"su -m www-data -s /bin/sh -c 'daphne -b 0.0.0.0 -p {port} --proxy-headers {access_log} asgi:application'"
 
                 server = (server1, server2, server3)[ASGI_SERVER_ID]
 
