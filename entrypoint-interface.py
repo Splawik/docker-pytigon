@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            proxy_pass {LOCAL_IP}:$PORT/$PRJ$1/channel/;
+            proxy_pass {LOCAL_IP}:$PORT2/$PRJ$1/channel/;
             proxy_connect_timeout       {WEBSOCKET_TIMEOUT};
             proxy_send_timeout          {WEBSOCKET_TIMEOUT};
             proxy_read_timeout          {WEBSOCKET_TIMEOUT};
@@ -248,7 +248,7 @@ if __name__ == "__main__":
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            proxy_pass {LOCAL_IP}:$PORT$1/channel/;
+            proxy_pass {LOCAL_IP}:$PORT2$1/channel/;
             proxy_connect_timeout       {WEBSOCKET_TIMEOUT};
             proxy_send_timeout          {WEBSOCKET_TIMEOUT};
             proxy_read_timeout          {WEBSOCKET_TIMEOUT};
@@ -317,18 +317,19 @@ if __name__ == "__main__":
         conf.write(CFG_START.replace("$PRJ", MAIN_PRJ))
 
         port = START_PORT
+        port2 = port + 1
         for prj in PRJS:
-
             path = f"{PRJ_PATH}/{prj}/static/{prj}"
             if not os.path.exists(path):
                 path = f"{PRJ_PATH_ALT}/{prj}/static/{prj}"
 
-            conf.write(CFG_ELEM.replace("$PRJ", prj).replace("$PORT", str(port)))
-            port += 1
+            conf.write(CFG_ELEM.replace("$PRJ", prj).replace("$PORT2", str(port2)).replace("$PORT", str(port)))
+            port += 2
+            port2 = port + 1
         if MAIN_PRJ:
             if NGINX_INCLUDE:
                 conf.write("    include %s;\n\n" % NGINX_INCLUDE)
-            conf.write(CFG_END.replace("$PORT", str(port)))
+            conf.write(CFG_END.replace("$PORT2", str(port2)).replace("$PORT", str(port)))
 
     if MAIN_PRJ and not MAIN_PRJ in PRJS:
         PRJS.append(MAIN_PRJ)
@@ -363,24 +364,29 @@ if __name__ == "__main__":
                     else NOWP["default-additional"]
                 )
 
-            if prj in NO_ASGI:
-                server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
-            else:
-                server1 = f"hypercorn -b 0.0.0.0:{port} --user {uid} -w {count} {access_logfile} {error_logfile} asgi:application"
-                server2 = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
-                server3 = f"su -m www-data -s /bin/sh -c 'daphne -b 0.0.0.0 -p {port} --proxy-headers {access_log} asgi:application'"
 
-                server = (server1, server2, server3)[ASGI_SERVER_ID]
+            server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
+
+            if prj in NO_ASGI:
+                asgi_server = None
+            else:
+                server1 = f"hypercorn -b 0.0.0.0:{port+1} --user {uid} -w 1 {access_logfile} {error_logfile} asgi:application"
+                server2 = f"gunicorn -b 0.0.0.0:{port+1} --user www-data -w 1 -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
+                server3 = f"su -m www-data -s /bin/sh -c 'daphne -b 0.0.0.0 -p {port+1} --proxy-headers {access_log} asgi:application'"
+                asgi_server = (server1, server2, server3)[ASGI_SERVER_ID]
 
             path = f"/home/www-data/.pytigon/prj/{prj}"
             if not os.path.exists(path):
                 path = f"/usr/local/lib/python3.7/site-packages/pytigon/prj/{prj}"
 
             cmd = f"cd {path} && exec {server}"
-
-            port += 1
             print(cmd)
             ret_tab.append(subprocess.Popen(cmd, shell=True))
+            if asgi_server:
+                cmd = f"cd {path} && exec {asgi_server}"
+                print(cmd)
+                ret_tab.append(subprocess.Popen(cmd, shell=True))
+            port += 2
 
     if not "RUN_TASKS_QUEUE" in environ or (
         environ["RUN_TASKS_QUEUE"] and environ["RUN_TASKS_QUEUE"] != "0"
