@@ -24,6 +24,7 @@ RUN chown -R www-data:www-data /home/www-data && \
 
 RUN apt-get -y install postgresql-client postgresql-client-common libpq-dev
 
+RUN pip3 install --upgrade pip~=20.2.0
 RUN pip3 install django-filer
 RUN pip3 install git+https://github.com/Splawik/pytigon.git
 RUN pip3 uninstall pytigon-lib -y
