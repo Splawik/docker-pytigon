@@ -36,6 +36,7 @@ if __name__ == "__main__":
     BASE_APPS_PATH = paths["PRJ_PATH"]
     LOCAL_IP = "http://127.0.0.1"
     sys.path.append(BASE_APPS_PATH)
+    sys.path.append(PRJ_PATH_ALT)
 
     uid, gid = pwd.getpwnam("www-data").pw_uid, pwd.getpwnam("www-data").pw_uid
 
@@ -55,8 +56,11 @@ if __name__ == "__main__":
     # hack:
     subprocess.Popen("chmod -R 777 /home/www-data/.pytigon/static", shell=True)
 
+    #subprocess.Popen(
+    #    "chmod -R 777 /usr/local/lib/python3.7/site-packages/pytigon/static", shell=True
+    #)
     subprocess.Popen(
-        "chmod -R 777 /usr/local/lib/python3.7/site-packages/pytigon/static", shell=True
+        "chmod -R 777 /usr/local/lib/python3.7/site-packages/pytigon", shell=True
     )
     # hack end
 
@@ -297,14 +301,25 @@ if __name__ == "__main__":
             else:
                 PRJS.append(prj)
 
+
     if "INCLUDE_SETUP" in environ:
         PRJS.append("schsetup")
     if "INCLUDE_DEVTOOLS" in environ:
         PRJS.append("schdevtools")
+        NO_ASGI.append("schdevtools")
     if "INCLUDE_PORTAL" in environ:
         PRJS.append("schportal")
+        NO_ASGI.append("schportal")
+
     if "MAIN_PRJ" in environ:
         MAIN_PRJ = environ["MAIN_PRJ"]
+        try:
+            x = __import__(MAIN_PRJ + ".apps")
+            if hasattr(x.apps, "NO_ASGI") and x.apps.NO_ASGI:
+               NO_ASGI.append(MAIN_PRJ)
+        except:
+            pass
+
 
     if not MAIN_PRJ and len(PRJS) == 1:
         MAIN_PRJ = PRJS[0]
@@ -352,7 +367,8 @@ if __name__ == "__main__":
                 % get_executable()
             )
 
-            collectstatic = subprocess.Popen(cmd, shell=True)
+            fnull = open(os.devnull, "w")
+            collectstatic = subprocess.Popen(cmd, shell=True, stdout=fnull, stderr=subprocess.STDOUT)
             collectstatic.wait()
 
             if prj in NOWP:
@@ -365,13 +381,12 @@ if __name__ == "__main__":
                 )
 
 
-            server = f"gunicorn -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
-
+            server = f"gunicorn --preload -b 0.0.0.0:{port} --user www-data -w {count} {access_logfile} {error_logfile} wsgi -t {TIMEOUT}"
             if prj in NO_ASGI:
                 asgi_server = None
             else:
                 server1 = f"hypercorn -b 0.0.0.0:{port+1} --user {uid} -w 1 {access_logfile} {error_logfile} asgi:application"
-                server2 = f"gunicorn -b 0.0.0.0:{port+1} --user www-data -w 1 -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
+                server2 = f"gunicorn --preload -b 0.0.0.0:{port+1} --user www-data -w 1 -k uvicorn.workers.UvicornWorker {access_logfile} {error_logfile} asgi:application -t {TIMEOUT}"
                 server3 = f"su -m www-data -s /bin/sh -c 'daphne -b 0.0.0.0 -p {port+1} --proxy-headers {access_log} asgi:application'"
                 asgi_server = (server1, server2, server3)[ASGI_SERVER_ID]
 
