@@ -407,7 +407,7 @@ if __name__ == "__main__":
         environ["RUN_TASKS_QUEUE"] and environ["RUN_TASKS_QUEUE"] != "0"
     ):
         if "ASYNC_TASKS" in environ and (
-            environ["ASYNC_TASKS"] and environ["ASYNC_TASKS"] == "0"
+            environ["ASYNC_TASKS"] and environ["ASYNC_TASKS"] != "0"
         ):
             for prj in PRJS:
                 cmd = (
